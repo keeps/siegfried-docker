@@ -1,0 +1,26 @@
+name: Build Docker
+
+on: 
+  repository_dispatch: 
+    types: ["dispatch"]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Login to DockerHub
+        uses: docker/login-action@v2 
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_PASSWORD }}
+      - name: Build and push
+        id: docker_build
+        uses: docker/build-push-action@v2
+        with:
+          push: true
+          build-args: SIEGFRIED_VERSION=v${{ github.event.client_payload.version }}
+          tags: | 
+            keeps/siegfried:v${{ github.event.client_payload.version }}
+      - name: Image digest
+        run: echo ${{ steps.docker_build.outputs.digest }}
