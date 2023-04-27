@@ -12,7 +12,7 @@ https://github.com/richardlehane/siegfried/wiki/Using-the-siegfried-server
 Run as a server:
 ```sh
 # Start server, mapping data into the container, here using the current directory `$PWD`
-docker run -v $PWD:$PWD -p 5138:5138 -e SIEGFRIED_HOST=0.0.0.0 -d --name siegfried keeps/siegfried:v1.9.4
+docker run -v $PWD:$PWD -p 5138:5138 -e SIEGFRIED_HOST=0.0.0.0 -d --name siegfried keeps/siegfried:v1.10.1
 # Make requests using curl, here sending the current directory in base64 encoding
 curl  "http://localhost:5138/identify/$(echo -n $PWD | base64 -)?base64=true"
 # Stop server
@@ -21,7 +21,7 @@ docker stop siegfried
 Run as a command:
 ```sh
 # Run in current directory
-docker run -v $PWD:$PWD --rm keeps/siegfried:v1.9.4 sf $PWD
+docker run -v $PWD:$PWD --rm keeps/siegfried:v1.10.1 sf $PWD
 ```
 
 
