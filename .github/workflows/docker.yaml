@@ -23,5 +23,6 @@ jobs:
           build-args: SIEGFRIED_VERSION=v${{ github.event.client_payload.version }}
           tags: |
             ghcr.io/keeps/siegfried:v${{ github.event.client_payload.version }}
+            ghcr.io/keeps/siegfried:latest
       - name: Image digest
         run: echo ${{ steps.docker_build.outputs.digest }}
