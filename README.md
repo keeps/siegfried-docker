@@ -29,6 +29,11 @@ Parameters via environment variables:
 * SIEGFRIED_HOST: Set the binding host for the service, use `0.0.0.0` to accept any connection. Default: `0.0.0.0`
 * SIEGFRIED_PORT: Set the port for the service. Default: `5138`.
 
+Change user id so siegfried can access content in mounted volumes:
+* Set user id and group using docker run --user or [docker compose user attribute](https://docs.docker.com/compose/compose-file/compose-file-v3/#domainname-hostname-ipc-mac_address-privileged-read_only-shm_size-stdin_open-tty-user-working_dir)
+* Set USER environment variable to "siegfried"
+* Set HOME environment variable to "/home/siegfried/"
+
 Build arguments:
 * SIEGFRIED_VERSION: Set the version of siegfried to install. Default: `latest`
 * SIEGFRIED_USER: Set the name of the user running in the container. Default: `siegfried`
