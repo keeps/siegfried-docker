@@ -1,0 +1,30 @@
+name: Manual
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        required: true
+        description: Version to manual
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Login to DockerHub
+        uses: docker/login-action@v2
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Build and push
+        id: docker_build
+        uses: docker/build-push-action@v4
+        with:
+          push: true
+          build-args: SIEGFRIED_VERSION=v${{ github.event.inputs.version }}
+          tags: |
+            ghcr.io/keeps/siegfried:v${{ github.event.inputs.version }}
+      - name: Image digest
+        run: echo ${{ steps.docker_build.outputs.digest }}
