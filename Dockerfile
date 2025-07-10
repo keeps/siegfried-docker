@@ -1,4 +1,4 @@
-FROM golang:1-alpine
+FROM golang:1.24.2-alpine
 ARG SIEGFRIED_VERSION=latest
 ARG SIEGFRIED_USER="siegfried"
 ARG SIEGFRIED_UID="1000"
