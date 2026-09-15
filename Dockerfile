@@ -9,6 +9,10 @@ FROM alpine:3.22
 ARG SIEGFRIED_USER="siegfried"
 ARG SIEGFRIED_UID="1000"
 
+LABEL org.opencontainers.image.description="Siegfried file format identification service running as a minimal container."
+LABEL org.opencontainers.image.source="https://github.com/keeps/siegfried-docker"
+LABEL org.opencontainers.image.licenses="LGPL-2.1-only"
+
 RUN adduser -u "$SIEGFRIED_UID" -S "$SIEGFRIED_USER" -h "/home/$SIEGFRIED_USER/"
 
 COPY --from=build /go/bin/sf /usr/local/bin/sf
