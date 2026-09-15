@@ -5,7 +5,7 @@ on:
     inputs:
       version:
         required: true
-        description: Version to manual
+        description: Version to manual (e.g. "1.11.7")
 
 jobs:
   build:
