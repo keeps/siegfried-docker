@@ -1,0 +1,114 @@
+name: Build and publish
+
+on:
+  schedule:
+    # Daily check for new siegfried releases upstream.
+    - cron: "17 6 * * *"
+  workflow_dispatch:
+    inputs:
+      version:
+        required: false
+        description: >-
+          Siegfried version to build (e.g. "1.11.7"). Leave empty to build
+          whatever is currently the latest upstream release.
+
+permissions:
+  contents: read
+  packages: write
+
+concurrency:
+  group: docker-build
+  cancel-in-progress: false
+
+jobs:
+  plan:
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.plan.outputs.version }}
+      is_latest: ${{ steps.plan.outputs.is_latest }}
+      already_published: ${{ steps.plan.outputs.already_published }}
+    steps:
+      - name: Login to ghcr.io
+        uses: docker/login-action@v4.6.0
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Determine target version and whether to build
+        id: plan
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REQUESTED_VERSION: ${{ github.event.inputs.version }}
+        run: |
+          set -euo pipefail
+
+          upstream_latest=$(gh api repos/richardlehane/siegfried/releases/latest --jq .tag_name | sed 's/^v//')
+
+          if [ -n "${REQUESTED_VERSION:-}" ]; then
+            version="${REQUESTED_VERSION#v}"
+          else
+            version="$upstream_latest"
+          fi
+
+          if [ "$version" = "$upstream_latest" ]; then
+            is_latest=true
+          else
+            is_latest=false
+          fi
+
+          if docker buildx imagetools inspect "ghcr.io/keeps/siegfried:v${version}" >/dev/null 2>&1; then
+            already_published=true
+          else
+            already_published=false
+          fi
+
+          echo "Target version: $version (upstream latest: $upstream_latest, is_latest: $is_latest, already_published: $already_published)"
+
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+          echo "is_latest=$is_latest" >> "$GITHUB_OUTPUT"
+          echo "already_published=$already_published" >> "$GITHUB_OUTPUT"
+
+  build:
+    needs: plan
+    if: github.event_name == 'workflow_dispatch' || needs.plan.outputs.already_published == 'false'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7.0.1
+
+      - name: Login to ghcr.io
+        uses: docker/login-action@v4.6.0
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v4.3.0
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v4.3.0
+
+      - name: Docker metadata
+        id: meta
+        uses: docker/metadata-action@v6.2.0
+        with:
+          images: ghcr.io/keeps/siegfried
+          flavor: |
+            latest=false
+          tags: |
+            type=raw,value=v${{ needs.plan.outputs.version }}
+            type=raw,value=latest,enable=${{ needs.plan.outputs.is_latest }}
+
+      - name: Build and push
+        id: docker_build
+        uses: docker/build-push-action@v7.3.0
+        with:
+          platforms: linux/amd64,linux/arm64
+          push: true
+          build-args: SIEGFRIED_VERSION=v${{ needs.plan.outputs.version }}
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+
+      - name: Image digest
+        run: echo ${{ steps.docker_build.outputs.digest }}
