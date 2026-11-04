@@ -28,8 +28,8 @@ There is no test suite; validating a change means building the image and running
 ## Dockerfile architecture
 
 Multi-stage build:
-1. **`build` stage** (`golang:1.26.0-alpine`): `go install`s `sf` at `SIEGFRIED_VERSION`, then runs `sf -update` as root to fetch the PRONOM signature file into `/root/.local/share/siegfried/`.
-2. **Final stage** (`alpine:3.22`): creates the non-root `SIEGFRIED_USER`/`SIEGFRIED_UID`, and copies only the compiled `sf` binary and the signature file from the build stage — the Go toolchain and module cache never reach the final image.
+1. **`build` stage** (`golang:1.27-alpine`): `go install`s `sf` at `SIEGFRIED_VERSION`, then runs `sf -update` as root to fetch the PRONOM signature file into `/root/.local/share/siegfried/`.
+2. **Final stage** (`alpine:3.24`): creates the non-root `SIEGFRIED_USER`/`SIEGFRIED_UID`, and copies only the compiled `sf` binary and the signature file from the build stage — the Go toolchain and module cache never reach the final image.
 
 `CMD` uses `exec` inside a shell (`CMD ["sh", "-c", "exec sf -serve $SIEGFRIED_HOST:$SIEGFRIED_PORT"]`) so `sf` becomes PID 1 and receives `SIGTERM` directly — required for `docker stop` to shut it down promptly instead of waiting out the kill timeout.
 

@@ -1,11 +1,11 @@
-FROM golang:1.26.0-alpine AS build
+FROM golang:1.27-alpine AS build
 ARG SIEGFRIED_VERSION=latest
 ENV CGO_ENABLED=0
 
 RUN go install github.com/richardlehane/siegfried/cmd/sf@${SIEGFRIED_VERSION}
 RUN sf -update
 
-FROM alpine:3.22
+FROM alpine:3.24
 ARG SIEGFRIED_USER="siegfried"
 ARG SIEGFRIED_UID="1000"
 

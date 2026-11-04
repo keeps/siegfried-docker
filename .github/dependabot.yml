@@ -5,3 +5,9 @@ updates:
     directory: "/"
     schedule:
       interval: "daily"
+
+  # Keep the Dockerfile base images (golang, alpine) up to date
+  - package-ecosystem: "docker"
+    directory: "/"
+    schedule:
+      interval: "daily"
